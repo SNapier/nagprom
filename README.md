@@ -45,7 +45,7 @@ Edit the file "/usr/local/nagios/etc/objects/commands.cfg" to include the follow
       service_perfdata_command=nagprom-service
 
 ## Add Nagios user to Prometheus group
-      usermod -a -G Prometheus nagios
+      usermod -a -G prometheus nagios
 
 ## Restart Nagios
       systemctl restart nagios
