@@ -46,6 +46,9 @@ Edit the file "/usr/local/nagios/etc/objects/commands.cfg" to include the follow
 
 ## Add Nagios user to Prometheus group
       usermod -a -G prometheus nagios
+## Set Node_Exporter Directory Permissions
+      chown -R prometheus:prometheus /var/lib/prometheus/node-exporter
+      chmod 775 /var/lib/prometheus/node-exporter
 
 ## Restart Nagios
       systemctl restart nagios
