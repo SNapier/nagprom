@@ -7,7 +7,7 @@ from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 
 #SCRIPT DEFINITION
 cname = "nagprom-service"
-cversion = "0.0.1"
+cversion = "0.0.2"
 appPath = os.path.dirname(os.path.realpath(__file__))
 
 if __name__ == "__main__" :
@@ -82,7 +82,7 @@ if __name__ == "__main__" :
         ev = fv[0]
         
         #GET THE UNIT OF MEASURE FROM EXTRACTED VALUE IF PRESENT
-        u = re.search("(\\D{1,2})$", ev)
+        u = re.search("(\\D{1,3})$", ev)
         if u:
             uom = u[1]
         else:
