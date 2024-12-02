@@ -1,5 +1,5 @@
 import argparse, os, prometheus_client, sys, re
-from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
+from prometheus_client import CollectorRegistry, Gauge, write_to_textfile, info
 
 #NAGIOS(CORE) PROMETHEUS PERFDATA EXPORTOR - SERVICE
 #PARSES NAGIOS CORE PERFORMANCE DATA AND EXPORTS THE DATA TO A PROMETHEUS
@@ -7,7 +7,7 @@ from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 
 #SCRIPT DEFINITION
 cname = "nagprom-service"
-cversion = "0.0.2"
+cversion = "0.0.3"
 appPath = os.path.dirname(os.path.realpath(__file__))
 
 if __name__ == "__main__" :
@@ -29,6 +29,13 @@ if __name__ == "__main__" :
         required=True,
         default=None,
         help="String(servicedesc): The nagios service description generating performance data."
+    ),
+    #NAGIOS SERVICE STATE
+    args.add_argument(
+        "-s","--servicestate",
+        required=True,
+        default=None,
+        help="String(servicestate): The nagios service state for the srvice generating performance data."
     ),
     #NAGIOS PERFORMANCE DATA
     args.add_argument(
@@ -64,6 +71,12 @@ if __name__ == "__main__" :
     
     #GAUGE DEFINITOIN
     g = Gauge(gname, meta.servicedesc, ['metric','unit'], registry=nagmetrics)
+
+    #ADD THE SERVICESTATE TO NAGMETRICS
+    #BY ADDING A CUSTOM VALUE TO THE METRIC WHERE WE TRACK THE LIVE SERVICE STATE WITH
+    #THE PERFORMANCE DATA WE REMOVE THE NEED FOR OBJECT BROKERS SUCH AS CHK_LIVESTATUS
+    ss = Info('service')
+    ss.info({"state": meta.servicestate}, registry=nagmetrics)
     
     #GET INDIVIDUAL METRICS IN THE PERFDATA STRING
     rawdata = meta.perfdata.split(" ")
