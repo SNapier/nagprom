@@ -14,7 +14,7 @@ Edit the file "/usr/local/nagios/etc/objects/commands.cfg" to include the follow
 
     define command{
          command_name     nagprom-service
-         command_line     python3 /usr/local/nagios/libexec/nagprom-service.py -H $HOSTNAME$ -s "$SERVICEDESC$" -p "$SERVICEPERFDATA$"
+         command_line     python3 /usr/local/nagios/libexec/nagprom-service.py -H $HOSTNAME$ -s "$SERVICEDESC$" -e $SERVICESTATE$ -p "$SERVICEPERFDATA$"
     }
 
 ## Modify nagios.cfg to enable metric export.
@@ -30,8 +30,6 @@ Edit the file "/usr/local/nagios/etc/objects/commands.cfg" to include the follow
       # Values: 1 = process performance data, 0 = do not process performance data
       
       process_performance_data=1
-
-
 
       # HOST AND SERVICE PERFORMANCE DATA PROCESSING COMMANDS
       # These commands are run after every host and service check is
