@@ -7,7 +7,7 @@ from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 
 #SCRIPT DEFINITION
 cname = "nagprom-service"
-cversion = "0.0.2"
+cversion = "0.0.3"
 appPath = os.path.dirname(os.path.realpath(__file__))
 
 if __name__ == "__main__" :
@@ -29,6 +29,13 @@ if __name__ == "__main__" :
         required=True,
         default=None,
         help="String(servicedesc): The nagios service description generating performance data."
+    ),
+    #NAGIOS SERVICE STATE
+    args.add_argument(
+        "-e","--servicestate",
+        required=True,
+        default=None,
+        help="String(servicestate): The nagios service exit state for the service generating performance data."
     ),
     #NAGIOS PERFORMANCE DATA
     args.add_argument(
@@ -58,13 +65,22 @@ if __name__ == "__main__" :
 
     #SAFE FORMAT NAGIOS SEVICE DESCRIPTION
     svc = meta.servicedesc.replace(" ","_")
-    
+
     #FORMAT GAUGE NAME
     gname = "{}_{}".format(meta.host,svc.lower())
     
-    #GAUGE DEFINITOIN
-    g = Gauge(gname, meta.servicedesc, ['metric','unit'], registry=nagmetrics)
-    
+    #ADD THE SERVICESTATE TO NAGMETRICS
+    nps = f"{gname}_state"
+    npsg = Gauge(nps, 'Nagios Service State',labelnames=['service', 'state'],registry=nagmetrics)
+
+    #LOOP THROUGH AND SET SERVICE STATE
+    for state in ['2', '1', '0','3']:
+        metric = 1 if meta.servicestate == state else 0
+        npsg.labels(service=svc, state=state).set(metric)
+
+    #PERFDATA GAUGE DEFINITOIN
+    g = Gauge(gname, "Nagios Performance Data", ['metric','unit'], registry=nagmetrics)
+
     #GET INDIVIDUAL METRICS IN THE PERFDATA STRING
     rawdata = meta.perfdata.split(" ")
     
@@ -95,5 +111,6 @@ if __name__ == "__main__" :
         g.labels(metric,uom).set(value)
     
     #WRITE THE METRICS REGISRTY TO THE HOSTS PROM FILE    
-    promfile = '/var/lib/prometheus/node-exporter/{}_{}.prom'.format(meta.host,svc.lower())    
+    #promfile = '/var/lib/prometheus/node-exporter/{}_{}.prom'.format(meta.host,svc.lower())
+    promfile = '/temp/{}_{}.prom'.format(meta.host,svc.lower())      
     write_to_textfile(promfile, nagmetrics)
