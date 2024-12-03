@@ -7,7 +7,7 @@ from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 
 #SCRIPT DEFINITION
 cname = "nagprom-service"
-cversion = "0.0.3"
+cversion = "0.0.4"
 appPath = os.path.dirname(os.path.realpath(__file__))
 
 if __name__ == "__main__" :
@@ -34,8 +34,15 @@ if __name__ == "__main__" :
     args.add_argument(
         "-e","--servicestate",
         required=True,
-        default=None,
+        default="OK",
         help="String(servicestate): The nagios service exit state for the service generating performance data."
+    ),
+        #NAGIOS SERVICE STATE
+    args.add_argument(
+        "-i","--servicestateid",
+        required=True,
+        default=None,
+        help="String(servicestateid): The nagios service exit state for the service generating performance data."
     ),
     #NAGIOS PERFORMANCE DATA
     args.add_argument(
@@ -72,11 +79,7 @@ if __name__ == "__main__" :
     #ADD THE SERVICESTATE TO NAGMETRICS
     nps = f"{gname}_state"
     npsg = Gauge(nps, 'Nagios Service State',labelnames=['service', 'state'],registry=nagmetrics)
-
-    #LOOP THROUGH AND SET SERVICE STATE
-    for state in ['2', '1', '0','3']:
-        metric = 1 if meta.servicestate == state else 0
-        npsg.labels(service=svc, state=state).set(metric)
+    npsg.labels(service=svc, state=meta.servicestate).set(meta.servicestateid)
 
     #PERFDATA GAUGE DEFINITOIN
     g = Gauge(gname, "Nagios Performance Data", ['metric','unit'], registry=nagmetrics)
@@ -111,6 +114,5 @@ if __name__ == "__main__" :
         g.labels(metric,uom).set(value)
     
     #WRITE THE METRICS REGISRTY TO THE HOSTS PROM FILE    
-    #promfile = '/var/lib/prometheus/node-exporter/{}_{}.prom'.format(meta.host,svc.lower())
-    promfile = '/temp/{}_{}.prom'.format(meta.host,svc.lower())      
+    promfile = '/var/lib/prometheus/node-exporter/{}_{}.prom'.format(meta.host,svc.lower())    
     write_to_textfile(promfile, nagmetrics)

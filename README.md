@@ -14,7 +14,7 @@ Edit the file "/usr/local/nagios/etc/objects/commands.cfg" to include the follow
 
     define command{
          command_name     nagprom-service
-         command_line     python3 /usr/local/nagios/libexec/nagprom-service.py -H $HOSTNAME$ -s "$SERVICEDESC$" -e $SERVICESTATE$ -p "$SERVICEPERFDATA$"
+         command_line     python3 /usr/local/nagios/libexec/nagprom-service.py -H $HOSTNAME$ -s "$SERVICEDESC$" -e "$SERVICESTATE$" -i $SERVICESTATEID$ -p "$SERVICEPERFDATA$"
     }
 
 ## Modify nagios.cfg to enable metric export.
