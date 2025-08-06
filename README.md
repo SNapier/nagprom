@@ -480,6 +480,8 @@ nagios_service_info
 ## Grafana Dashboards
 
 ### Service Status Overview
+![Service Status Overview Dashboard](service-status-overview.png)
+
 Import `service-status-overview.json` into Grafana for a high-level view:
 - Global service state overview
 - Service state distribution
@@ -487,6 +489,8 @@ Import `service-status-overview.json` into Grafana for a high-level view:
 - Optimized for large-scale environments
 
 ### Service Monitoring Detail
+![Service Monitoring Detail Dashboard](service-monitoring-detail.png)
+
 Import `services-monitoring-detail.json` for detailed service analysis:
 - Explicit host/service selection to prevent performance issues
 - Detailed performance metrics with thresholds
@@ -497,6 +501,8 @@ Import `services-monitoring-detail.json` for detailed service analysis:
   - Selective data loading based on user choices
 
 ### Host Status Overview
+![Host Status Overview Dashboard](host-status-overview.png)
+
 Import `host-status-overview.json` for host monitoring:
 - Host state heatmap (supports thousands of hosts)
 - Host status summary cards
@@ -727,6 +733,5 @@ The monitoring system consists of three interconnected dashboards, each optimize
    - Update any custom dashboards
 
 ## Contributing
-
 
 Feel free to submit issues and enhancement requests! 
