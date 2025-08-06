@@ -1,5 +1,5 @@
-# nagprom-service
-Enhanced Nagios Core plugin that writes all performance data for services to prom files to be processed by Prometheus.
+# nagprom
+Enhanced Nagios Core plugins that write all performance data for services and host status to prom files to be processed by Prometheus.
 
 ## Overview
 
@@ -727,5 +727,6 @@ The monitoring system consists of three interconnected dashboards, each optimize
    - Update any custom dashboards
 
 ## Contributing
+
 
 Feel free to submit issues and enhancement requests! 
