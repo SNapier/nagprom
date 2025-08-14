@@ -48,6 +48,8 @@ The API implements rate limiting to prevent abuse:
 | SRE Reliability | 100/hour | Service/host reliability |
 | SRE Anomalies | 50/hour | Anomaly detection |
 | SRE SLO | 50/hour | SLO management |
+| Alert Correlation | 50/hour | Alert correlation analysis |
+| Alert Ingestion | 1000/hour | Alert webhook ingestion |
 
 ## Response Format
 
@@ -956,6 +958,131 @@ Options:
   --debug               Enable debug mode
 ```
 
+## Alert Correlation Endpoints
+
+### Alert Correlation Analysis
+
+#### `GET /api/v1/sre/alerts/correlation`
+
+Get current alert correlations and pattern analysis.
+
+**Query Parameters:**
+- `time_window` (int): Time window in seconds (60-86400, default: 900)
+- `service` (string): Filter by service name
+- `host` (string): Filter by host name
+- `type` (string): Filter by correlation type (temporal, spatial, similarity, dependency)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "correlations": [
+      {
+        "id": "cluster_001",
+        "correlation_type": "temporal",
+        "confidence_score": 0.85,
+        "alert_count": 3,
+        "created_at": "2025-08-14T19:55:15.887201",
+        "root_cause_candidates": ["database", "network"],
+        "impact_assessment": "High impact on user-facing services",
+        "alerts": [
+          {
+            "id": "alert_001",
+            "service": "database",
+            "host": "db-server-01",
+            "severity": "critical",
+            "title": "Database connection timeout",
+            "timestamp": "2025-08-14T19:50:00.000000"
+          }
+        ]
+      }
+    ],
+    "metrics": {
+      "total_alerts": 15,
+      "correlated_alerts": 12,
+      "correlation_rate": 80.0,
+      "clusters_created": 3,
+      "active_clusters": 2,
+      "noise_suppressed": 3,
+      "noise_reduction_rate": 20.0,
+      "correlation_rules": 4
+    },
+    "query_params": {
+      "time_window": 900,
+      "service": null,
+      "host": null,
+      "correlation_type": null
+    }
+  }
+}
+```
+
+### Alert Ingestion
+
+#### `POST /api/v1/sre/alerts`
+
+Webhook endpoint for receiving alerts from external systems.
+
+**Request Body:**
+```json
+{
+  "id": "alert_001",
+  "timestamp": "2025-08-14T19:50:00.000000",
+  "service": "database",
+  "host": "db-server-01",
+  "severity": "critical",
+  "status": "firing",
+  "title": "Database connection timeout",
+  "description": "Unable to connect to database server",
+  "fingerprint": "db_connection_timeout"
+}
+```
+
+**Required Fields:**
+- `id`: Unique alert identifier
+- `service`: Service name
+- `host`: Host name
+- `severity`: Alert severity (critical, warning, info)
+- `title`: Alert title
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "alert_id": "alert_001",
+    "status": "received",
+    "correlation_triggered": true
+  }
+}
+```
+
+### Alert Metrics
+
+#### `GET /api/v1/sre/alerts/metrics`
+
+Get alert correlation engine metrics and statistics.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_alerts": 15,
+    "correlated_alerts": 12,
+    "correlation_rate": 80.0,
+    "clusters_created": 3,
+    "active_clusters": 2,
+    "noise_suppressed": 3,
+    "noise_reduction_rate": 20.0,
+    "correlation_rules": 4,
+    "engine_status": "active",
+    "last_updated": "2025-08-14T19:55:15.887201"
+  }
+}
+```
+
 ## Performance Considerations
 
 1. **Use pagination** for large datasets (`limit` and `offset` parameters)
@@ -963,6 +1090,7 @@ Options:
 3. **Cache responses** for frequently accessed data
 4. **Monitor rate limits** to avoid 429 errors
 5. **Use appropriate time ranges** for time-series queries
+6. **Optimize alert ingestion** by batching alerts when possible
 
 ## Security Best Practices
 

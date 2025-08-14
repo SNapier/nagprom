@@ -30,6 +30,10 @@ import json
 import numpy as np
 import pandas as pd
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Optional ML imports with graceful fallbacks
 try:
     from sklearn.cluster import DBSCAN
@@ -49,10 +53,6 @@ except ImportError:
     logger.warning("networkx not available. Dependency correlation will be disabled.")
 import re
 import uuid
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class AlertSeverity(Enum):

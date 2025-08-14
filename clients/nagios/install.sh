@@ -19,12 +19,13 @@ NAGPROM_DIR="$NAGIOS_SHARE/nagprom"
 NAGIOS_USER="nagios"
 NAGIOS_GROUP="nagios"
 
-# Files to install (with their new names)
+# Files to install
 FILES=(
     "index.php"
     "metrics.php"
     "debug.php"
     "graph.php"
+    "correlation.php"
 )
 
 echo -e "${GREEN}NagProm API Client Installer${NC}"
@@ -115,12 +116,14 @@ echo "  - $NAGPROM_DIR/index.php (Main Dashboard)"
 echo "  - $NAGPROM_DIR/metrics.php (Performance Metrics)"
 echo "  - $NAGPROM_DIR/debug.php (Debug Information)"
 echo "  - $NAGPROM_DIR/graph.php (Metrics Graphing)"
+echo "  - $NAGPROM_DIR/correlation.php (Alert Correlation)"
 echo ""
 echo -e "${BLUE}Access URLs:${NC}"
 echo "  Main Dashboard: http://your-server/nagios/nagprom/"
 echo "  Performance Metrics: http://your-server/nagios/nagprom/metrics.php"
 echo "  Debug Information: http://your-server/nagios/nagprom/debug.php"
 echo "  Metrics Graphing: http://your-server/nagios/nagprom/graph.php"
+echo "  Alert Correlation: http://your-server/nagios/nagprom/correlation.php"
 echo ""
 echo -e "${YELLOW}Note:${NC} Make sure the NagProm API is running and accessible at http://127.0.0.1/nagprom/api/v1"
 echo ""

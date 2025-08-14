@@ -69,11 +69,6 @@ Advanced monitoring solution combining Nagios reliability with Prometheus metric
 - Prometheus server running
 - Nagios Core with performance data enabled
 
-### ⚠️ **Important Compatibility Note**
-**Windows Users:** If you encounter NumPy DLL loading errors with Python 3.13, please use Python 3.11 or 3.12 instead. This is a known compatibility issue with NumPy 2.x and Python 3.13 alpha.
-
-**Linux Users:** No compatibility issues reported. The project has been tested and runs successfully on Linux environments.
-
 ### Installation
 
 #### Basic Installation (API Only)
@@ -97,6 +92,22 @@ pip install -r api/requirements.txt
 # For Windows users (if NumPy issues occur)
 pip install numpy==1.21.6 --only-binary=numpy
 pip install scikit-learn networkx
+```
+
+#### Production Installation (Recommended)
+```bash
+# Install API with all features
+cd nagprom/api/
+sudo ./install.sh --clean --skipssl --server-name your-server.com --allowed-networks "127.0.0.1 192.168.1.0/24"
+
+# Install Nagios dashboard components
+cd ../clients/nagios/
+sudo ./install.sh
+
+# Verify installation
+curl http://localhost/nagprom/api/v1/health
+curl http://localhost/nagprom/api/v1/sre/alerts/correlation
+```
 
 # Start the API server
 python api/nagprom_rest_api.py --host 0.0.0.0 --port 8080

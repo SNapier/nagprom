@@ -82,6 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Performance data parsing and threshold extraction
 - Prometheus query compatibility and error handling
+- **Installer Scripts** - Fixed corrupted installer scripts that were causing "required file not found" errors
+- **API Import Issues** - Resolved analytics engine import problems with proper path resolution
+- **Dashboard Styling** - Fixed correlation dashboard to match dark theme and removed incorrect navigation links
+- **Dependency Management** - Improved graceful fallbacks for missing ML libraries
+- **Path Resolution** - Fixed analytics engine path issues in production installations
 
 ## [1.0.0] - 2024-03-08
 

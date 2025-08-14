@@ -11,8 +11,56 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# Default values
+CLEAN_INSTALL=false
+SKIP_SSL=false
+SERVER_NAME=""
+ALLOWED_NETWORKS=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --clean)
+            CLEAN_INSTALL=true
+            shift
+            ;;
+        --skipssl)
+            SKIP_SSL=true
+            shift
+            ;;
+        --server-name)
+            SERVER_NAME="$2"
+            shift 2
+            ;;
+        --allowed-networks)
+            ALLOWED_NETWORKS="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  --clean              Clean installation (remove old files)"
+            echo "  --skipssl            Skip SSL configuration"
+            echo "  --server-name NAME   Set server name for SSL certificate"
+            echo "  --allowed-networks   Comma-separated list of allowed networks"
+            echo "  -h, --help           Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use -h or --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 echo -e "${GREEN}NagProm API Installer${NC}"
 echo "======================"
+echo "Clean install: $CLEAN_INSTALL"
+echo "Skip SSL: $SKIP_SSL"
+echo "Server name: ${SERVER_NAME:-'not specified'}"
+echo "Allowed networks: ${ALLOWED_NETWORKS:-'not specified'}"
+echo ""
 
 # Check if running as root
 if [[ $EUID -ne 0 ]]; then
@@ -20,14 +68,20 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Clean up old installation
-echo -e "${YELLOW}Cleaning up old installation...${NC}"
-systemctl stop nagprom-api 2>/dev/null || true
-systemctl disable nagprom-api 2>/dev/null || true
-rm -f /etc/systemd/system/nagprom-api.service
-rm -rf /opt/nagprom/bin
-rm -rf /opt/nagprom/venv
-systemctl daemon-reload
+# Clean up old installation if requested
+if [[ "$CLEAN_INSTALL" == "true" ]]; then
+    echo -e "${YELLOW}Performing clean installation...${NC}"
+    systemctl stop nagprom-api 2>/dev/null || true
+    systemctl disable nagprom-api 2>/dev/null || true
+    rm -f /etc/systemd/system/nagprom-api.service
+    rm -rf /opt/nagprom/bin
+    rm -rf /opt/nagprom/venv
+    rm -rf /opt/nagprom/api
+    rm -rf /opt/nagprom/analytics
+    rm -rf /opt/nagprom/config
+    systemctl daemon-reload
+    echo -e "${GREEN}Clean installation completed${NC}"
+fi
 
 # Create directories
 echo -e "${GREEN}Creating directories...${NC}"
@@ -37,16 +91,23 @@ mkdir -p /opt/nagprom/analytics
 
 # Copy API files
 echo -e "${GREEN}Installing API files...${NC}"
+echo "Copying nagprom_rest_api.py..."
 cp nagprom_rest_api.py /opt/nagprom/api/
+echo "Copying requirements.txt..."
 cp requirements.txt /opt/nagprom/api/
+echo "Copying requirements-conservative.txt..."
 cp requirements-conservative.txt /opt/nagprom/api/
+echo "Copying nagprom-api.service..."
 cp nagprom-api.service /etc/systemd/system/
 
 # Copy SRE Analytics files
 echo -e "${GREEN}Installing SRE Analytics files...${NC}"
-cp ../analytics/sre_analytics_engine.py /opt/nagprom/analytics/
-cp ../analytics/alert_correlation.py /opt/nagprom/analytics/
-cp ../analytics/README.md /opt/nagprom/analytics/
+echo "Copying sre_analytics_engine.py..."
+cp analytics/sre_analytics_engine.py /opt/nagprom/analytics/
+echo "Copying alert_correlation.py..."
+cp analytics/alert_correlation.py /opt/nagprom/analytics/
+echo "Copying analytics README.md..."
+cp analytics/README.md /opt/nagprom/analytics/
 
 # Copy utility scripts
 echo -e "${GREEN}Installing utility scripts...${NC}"
@@ -61,30 +122,37 @@ a2enmod proxy
 a2enmod proxy_http
 a2enmod headers
 
-# Create Apache configuration
-cat > /etc/apache2/sites-available/nagprom-api.conf << 'EOF'
-# NagProm API Apache Configuration
-# Add this to your existing Apache config
-
-# Enable required modules
-# sudo a2enmod proxy
-# sudo a2enmod proxy_http
-# sudo a2enmod headers
-
-# NagProm API Proxy
-ProxyPass /nagprom/api/ http://127.0.0.1:5000/api/
-ProxyPassReverse /nagprom/api/ http://127.0.0.1:5000/api/
-
-# Security headers
-<Location "/nagprom/">
-    Header always set Access-Control-Allow-Origin "*"
-    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, X-API-Key"
-</Location>
-EOF
+# Copy the simple Apache configuration
+cp apache-nagprom.conf /etc/apache2/sites-available/nagprom-api.conf
 
 # Enable the site
 a2ensite nagprom-api
+
+# Configure SSL if not skipped and server name is provided
+if [[ "$SKIP_SSL" == "false" && -n "$SERVER_NAME" ]]; then
+    echo -e "${GREEN}Configuring SSL for server: $SERVER_NAME${NC}"
+    
+    # Check if certbot is available
+    if command -v certbot &> /dev/null; then
+        echo -e "${YELLOW}Attempting to obtain SSL certificate with Let's Encrypt...${NC}"
+        certbot --apache -d "$SERVER_NAME" --non-interactive --agree-tos --email admin@"$SERVER_NAME" || {
+            echo -e "${YELLOW}Let's Encrypt certificate failed, continuing without SSL${NC}"
+        }
+    else
+        echo -e "${YELLOW}Certbot not found, creating self-signed certificate...${NC}"
+        # Create self-signed certificate
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/ssl/private/nagprom.key \
+            -out /etc/ssl/certs/nagprom.crt \
+            -subj "/C=US/ST=State/L=City/O=Organization/CN=$SERVER_NAME" 2>/dev/null || {
+            echo -e "${YELLOW}Self-signed certificate creation failed, continuing without SSL${NC}"
+        }
+    fi
+elif [[ "$SKIP_SSL" == "true" ]]; then
+    echo -e "${YELLOW}Skipping SSL configuration as requested${NC}"
+else
+    echo -e "${YELLOW}No server name provided, skipping SSL configuration${NC}"
+fi
 
 # Test and reload Apache
 if apache2ctl configtest; then
@@ -97,7 +165,13 @@ fi
 
 # Set permissions
 echo -e "${GREEN}Setting permissions...${NC}"
-chown -R nagios:nagios /opt/nagprom
+# Check if nagios user exists, if not use root
+if id "nagios" &>/dev/null; then
+    chown -R nagios:nagios /opt/nagprom
+else
+    echo -e "${YELLOW}Nagios user not found, setting ownership to root${NC}"
+    chown -R root:root /opt/nagprom
+fi
 chmod +x /opt/nagprom/api/nagprom_rest_api.py
 chmod +x /opt/nagprom/analytics/sre_analytics_engine.py
 
@@ -158,6 +232,12 @@ echo ""
 echo -e "${YELLOW}API is now accessible at:${NC}"
 echo "• Direct API: http://localhost:5000/api/v1/health"
 echo "• Via Apache: http://localhost/nagprom/api/v1/health"
+
+# Show SSL URLs if configured
+if [[ "$SKIP_SSL" == "false" && -n "$SERVER_NAME" ]]; then
+    echo "• Via HTTPS: https://$SERVER_NAME/nagprom/api/v1/health"
+fi
+
 echo ""
 echo -e "${YELLOW}New SRE Analytics Features:${NC}"
 echo "• Service Reliability: /api/v1/sre/service/{service}/reliability"

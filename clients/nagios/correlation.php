@@ -117,62 +117,63 @@ if ($metrics_response['success']) {
     <title>NagProm - Alert Correlation Dashboard</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: #2d2d2d;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             overflow: hidden;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
             color: white;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
         }
         
         .header h1 {
             margin: 0;
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: 300;
         }
         
         .header p {
             margin: 10px 0 0 0;
             opacity: 0.9;
+            font-size: 1.1em;
         }
         
         .nav {
-            background: #f8f9fa;
+            background: #3a3a3a;
             padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #4a4a4a;
         }
         
         .nav a {
-            color: #667eea;
+            color: #48bb78;
             text-decoration: none;
             margin-right: 20px;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
             transition: background-color 0.2s;
         }
         
         .nav a:hover {
-            background-color: #e9ecef;
+            background-color: #4a4a4a;
         }
         
         .nav a.active {
-            background-color: #667eea;
-            color: white;
+            background-color: #48bb78;
+            color: #1a1a1a;
         }
         
         .content {
@@ -180,10 +181,11 @@ if ($metrics_response['success']) {
         }
         
         .filters {
-            background: #f8f9fa;
+            background: #3a3a3a;
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
+            border: 1px solid #4a4a4a;
         }
         
         .filters form {
@@ -196,17 +198,20 @@ if ($metrics_response['success']) {
         .filters label {
             font-weight: 500;
             margin-right: 5px;
+            color: #e0e0e0;
         }
         
         .filters input, .filters select {
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #4a4a4a;
             border-radius: 4px;
             font-size: 14px;
+            background: #2d2d2d;
+            color: #e0e0e0;
         }
         
         .filters button {
-            background: #667eea;
+            background: #48bb78;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -216,7 +221,22 @@ if ($metrics_response['success']) {
         }
         
         .filters button:hover {
-            background: #5a6fd8;
+            background: #38a169;
+        }
+        
+        .refresh-button {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-button:hover {
+            background: #38a169;
         }
         
         .metrics-grid {
@@ -227,8 +247,8 @@ if ($metrics_response['success']) {
         }
         
         .metric-card {
-            background: white;
-            border: 1px solid #e9ecef;
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
             border-radius: 6px;
             padding: 15px;
             text-align: center;
@@ -237,12 +257,12 @@ if ($metrics_response['success']) {
         .metric-value {
             font-size: 2em;
             font-weight: bold;
-            color: #667eea;
+            color: #48bb78;
             margin-bottom: 5px;
         }
         
         .metric-label {
-            color: #6c757d;
+            color: #b0b0b0;
             font-size: 0.9em;
         }
         
@@ -251,34 +271,35 @@ if ($metrics_response['success']) {
         }
         
         .correlation-card {
-            background: white;
-            border: 1px solid #e9ecef;
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
             border-radius: 6px;
             margin-bottom: 15px;
             overflow: hidden;
         }
         
         .correlation-header {
-            background: #f8f9fa;
+            background: #4a4a4a;
             padding: 15px;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #4a4a4a;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .correlation-type {
-            background: #667eea;
-            color: white;
+            background: #48bb78;
+            color: #1a1a1a;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8em;
             text-transform: uppercase;
+            font-weight: bold;
         }
         
         .correlation-confidence {
             font-weight: bold;
-            color: #28a745;
+            color: #48bb78;
         }
         
         .correlation-body {
@@ -290,11 +311,11 @@ if ($metrics_response['success']) {
         }
         
         .alert-item {
-            background: #f8f9fa;
+            background: #2d2d2d;
             padding: 10px;
             margin-bottom: 8px;
             border-radius: 4px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #48bb78;
         }
         
         .alert-severity {
@@ -306,9 +327,9 @@ if ($metrics_response['success']) {
             margin-right: 10px;
         }
         
-        .severity-critical { background: #dc3545; color: white; }
-        .severity-warning { background: #ffc107; color: black; }
-        .severity-info { background: #17a2b8; color: white; }
+        .severity-critical { background: #f56565; color: white; }
+        .severity-warning { background: #ed8936; color: white; }
+        .severity-info { background: #4299e1; color: white; }
         
         .status {
             padding: 10px;
@@ -316,30 +337,15 @@ if ($metrics_response['success']) {
             margin-bottom: 15px;
         }
         
-        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status.success { background: #2d3748; color: #48bb78; border: 1px solid #48bb78; }
+        .status.error { background: #2d3748; color: #f56565; border: 1px solid #f56565; }
+        .status.warning { background: #2d3748; color: #ed8936; border: 1px solid #ed8936; }
         
         .no-data {
             text-align: center;
             padding: 40px;
-            color: #6c757d;
+            color: #b0b0b0;
             font-style: italic;
-        }
-        
-        .refresh-button {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        
-        .refresh-button:hover {
-            background: #218838;
         }
     </style>
 </head>
@@ -354,7 +360,6 @@ if ($metrics_response['success']) {
             <a href="index.php">📊 Main Dashboard</a>
             <a href="metrics.php">📈 Metrics</a>
             <a href="debug.php">🐛 Debug</a>
-            <a href="graph.php">📉 Graphs</a>
             <a href="correlation.php" class="active">🔍 Correlation</a>
         </div>
         

@@ -49,9 +49,9 @@ Before starting, ensure you have:
 ### Option 1: Complete Installation
 
 ```bash
-# Step 1: Install the REST API service
-cd nagprom-api/api/
-sudo bash install.sh
+# Step 1: Install the REST API service with SRE Analytics and Alert Correlation
+cd nagprom/api/
+sudo ./install.sh --clean --skipssl --server-name your-server.com --allowed-networks "127.0.0.1 192.168.1.0/24"
 
 # Step 2: Install Nagios dashboard components
 cd ../clients/nagios/
@@ -59,30 +59,46 @@ sudo ./install.sh
 
 # Verification
 curl http://localhost/nagprom/api/v1/health
+curl http://localhost/nagprom/api/v1/sre/alerts/correlation
 ```
 
 ### Option 2: API Service Only
 
 ```bash
-# Basic installation
-cd nagprom-api/api/
-sudo bash install.sh
+# Basic installation with all features
+cd nagprom/api/
+sudo ./install.sh --clean --skipssl --server-name your-server.com --allowed-networks "127.0.0.1 192.168.1.0/24"
 
 # Verification
 curl http://localhost/nagprom/api/v1/health
 ```
 
 The installer will:
-- Install all dependencies
-- Create dedicated directories
-- Configure systemd service with embedded SRE analytics
+- Install all dependencies including ML libraries (numpy, scikit-learn, networkx)
+- Create dedicated directories (/opt/nagprom/)
+- Configure systemd service with embedded SRE analytics and alert correlation
 - Set up Apache reverse proxy with security
-- Start all services
+- Start all services with graceful fallbacks for missing dependencies
 
-**Note:** This installs the REST API service only. For Nagios PHP dashboard components, run the separate Nagios installer after this:
+**Note:** This installs the REST API service with full SRE analytics and alert correlation capabilities. For Nagios PHP dashboard components, run the separate Nagios installer after this:
 ```bash
-cd nagprom-api/clients/nagios/
+cd nagprom/clients/nagios/
 sudo ./install.sh
+```
+
+### Installer Options
+
+The API installer supports several command-line options:
+
+```bash
+./install.sh [OPTIONS]
+
+Options:
+  --clean              Clean installation (remove old files)
+  --skipssl            Skip SSL configuration
+  --server-name NAME   Set server name for SSL certificate
+  --allowed-networks   Comma-separated list of allowed networks
+  -h, --help           Show help message
 ```
 
 ## Manual Installation Steps

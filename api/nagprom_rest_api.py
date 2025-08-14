@@ -16,10 +16,58 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+# Setup logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Add SRE Analytics Engine
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'analytics'))
-from sre_analytics_engine import SREAnalyticsEngine, SLOTarget, SLIMetric, SLIType
-from alert_correlation import AlertCorrelationEngine, Alert, AlertSeverity, AlertStatus
+analytics_path = os.path.join(os.path.dirname(__file__), '..', 'analytics')
+SRE_ANALYTICS_AVAILABLE = False
+
+# Create dummy classes for type hints first
+class SREAnalyticsEngine:
+    pass
+class SLOTarget:
+    pass
+class SLIMetric:
+    pass
+class SLIType:
+    pass
+
+if os.path.exists(analytics_path):
+    sys.path.append(analytics_path)
+    try:
+        from sre_analytics_engine import SREAnalyticsEngine, SLOTarget, SLIMetric, SLIType
+        SRE_ANALYTICS_AVAILABLE = True
+        logger.info("SRE Analytics engine imported successfully")
+    except ImportError as e:
+        logger.warning(f"SRE Analytics not available: {e}")
+        SRE_ANALYTICS_AVAILABLE = False
+else:
+    logger.warning(f"Analytics directory not found at {analytics_path}, SRE features disabled")
+    SRE_ANALYTICS_AVAILABLE = False
+
+# Optional alert correlation import with graceful fallback
+ALERT_CORRELATION_AVAILABLE = False
+
+# Create dummy classes for type hints first
+class AlertCorrelationEngine:
+    pass
+class Alert:
+    pass
+class AlertSeverity:
+    pass
+class AlertStatus:
+    pass
+
+if SRE_ANALYTICS_AVAILABLE:
+    try:
+        from alert_correlation import AlertCorrelationEngine, Alert, AlertSeverity, AlertStatus
+        ALERT_CORRELATION_AVAILABLE = True
+        logger.info("Alert correlation engine imported successfully")
+    except ImportError as e:
+        logger.warning(f"Alert correlation not available: {e}")
+        ALERT_CORRELATION_AVAILABLE = False
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -35,10 +83,6 @@ limiter = Limiter(
 # Configuration
 PROMETHEUS_URL = os.environ.get('PROMETHEUS_URL', 'http://localhost:9090')
 API_KEY = os.environ.get('NAGPROM_API_KEY', None)
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class PrometheusClient:
     """Simple Prometheus client"""
@@ -412,10 +456,28 @@ class PrometheusClient:
 prometheus = PrometheusClient(PROMETHEUS_URL)
 
 # Initialize SRE Analytics Engine
-sre_engine = SREAnalyticsEngine(prometheus_client=prometheus)
+sre_engine = None
+if SRE_ANALYTICS_AVAILABLE:
+    try:
+        sre_engine = SREAnalyticsEngine(prometheus_client=prometheus)
+        logger.info("SRE Analytics engine initialized successfully")
+    except Exception as e:
+        logger.warning(f"Failed to initialize SRE Analytics engine: {e}")
+        sre_engine = None
+else:
+    logger.info("SRE Analytics engine not available - endpoints will be disabled")
 
 # Initialize Alert Correlation Engine
-alert_correlation_engine = AlertCorrelationEngine()
+alert_correlation_engine = None
+if ALERT_CORRELATION_AVAILABLE:
+    try:
+        alert_correlation_engine = AlertCorrelationEngine()
+        logger.info("Alert correlation engine initialized successfully")
+    except Exception as e:
+        logger.warning(f"Failed to initialize alert correlation engine: {e}")
+        alert_correlation_engine = None
+else:
+    logger.info("Alert correlation engine not available - endpoints will be disabled")
 
 def require_api_key(f):
     """Decorator to require API key authentication"""
@@ -623,6 +685,9 @@ def get_services():
 @require_api_key
 def get_sre_dashboard():
     """Get SRE dashboard data"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         hosts = prometheus.get_hosts()
         services = prometheus.get_services()
@@ -660,6 +725,9 @@ def get_sre_dashboard():
 @require_api_key
 def get_capacity():
     """Get capacity planning data"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         hosts = prometheus.get_hosts()
         services = prometheus.get_services()
@@ -688,6 +756,9 @@ def get_capacity():
 @require_api_key
 def get_service_reliability():
     """Get detailed reliability metrics for services using query parameters"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         # Get query parameters
         service = request.args.get('service')
@@ -772,6 +843,9 @@ def get_service_reliability():
 @require_api_key
 def get_host_reliability():
     """Get detailed reliability metrics for hosts using query parameters"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         # Get query parameters
         host = request.args.get('host')
@@ -867,6 +941,9 @@ def get_host_reliability():
 @require_api_key
 def get_anomalies():
     """Get performance anomalies detected by SRE analytics"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         # Get query parameters
         service = request.args.get('service')
@@ -931,6 +1008,9 @@ def get_anomalies():
 @require_api_key
 def create_slo():
     """Create a new SLO target"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         data = request.get_json()
         
@@ -979,6 +1059,9 @@ def create_slo():
 @require_api_key
 def list_slos():
     """List all registered SLOs"""
+    if not SRE_ANALYTICS_AVAILABLE:
+        return create_response(False, error="SRE Analytics not available")
+    
     try:
         slo_data = {}
         
@@ -1331,6 +1414,9 @@ def get_performance_timeseries():
 @require_api_key
 def get_alert_correlations():
     """Get current alert correlations"""
+    if not ALERT_CORRELATION_AVAILABLE or not alert_correlation_engine:
+        return create_response(False, error="Alert correlation engine not available")
+    
     try:
         # Get query parameters
         time_window = request.args.get('time_window', type=int, default=900)  # 15 minutes default
@@ -1412,6 +1498,9 @@ def get_alert_correlations():
 @require_api_key
 def receive_alert():
     """Webhook endpoint for receiving alerts"""
+    if not ALERT_CORRELATION_AVAILABLE or not alert_correlation_engine:
+        return create_response(False, error="Alert correlation engine not available")
+    
     try:
         # Get alert data from request
         alert_data = request.get_json()
@@ -1457,6 +1546,9 @@ def receive_alert():
 @require_api_key
 def get_alert_metrics():
     """Get alert correlation metrics"""
+    if not ALERT_CORRELATION_AVAILABLE or not alert_correlation_engine:
+        return create_response(False, error="Alert correlation engine not available")
+    
     try:
         metrics = alert_correlation_engine.get_correlation_metrics()
         

@@ -30,14 +30,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Optional alert correlation integration
-try:
-    from alert_correlation import AlertCorrelationEngine, Alert, AlertSeverity as CorrelationAlertSeverity
-    ALERT_CORRELATION_AVAILABLE = True
-except ImportError:
-    ALERT_CORRELATION_AVAILABLE = False
-    logger.warning("Alert correlation not available - SRE engine will work without correlation features")
-
-
+ALERT_CORRELATION_AVAILABLE = False
 class SLIType(Enum):
     """Service Level Indicator types"""
     AVAILABILITY = "availability"
@@ -130,6 +123,7 @@ class SREAnalyticsEngine:
         self.alert_correlation_engine = None
         if ALERT_CORRELATION_AVAILABLE:
             try:
+                from alert_correlation import AlertCorrelationEngine
                 self.alert_correlation_engine = AlertCorrelationEngine()
                 logger.info("Alert correlation engine integrated with SRE analytics")
             except Exception as e:
