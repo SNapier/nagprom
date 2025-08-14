@@ -1,0 +1,17 @@
+[Unit]
+Description=NagProm REST API
+After=network.target
+
+[Service]
+Type=simple
+User=nagios
+Group=nagios
+WorkingDirectory=/opt/nagprom/api
+Environment=PROMETHEUS_URL=http://localhost:9090
+Environment=PATH=/opt/nagprom/api:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/nagprom/venv/bin/python /opt/nagprom/api/nagprom_rest_api.py --host 127.0.0.1 --port 5000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
