@@ -1,0 +1,8 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-Limiter==3.4.1
+requests==2.31.0
+setuptools>=65.0.0
+wheel>=0.38.0
+numpy==1.21.6
+pandas==1.5.3

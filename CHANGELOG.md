@@ -5,6 +5,84 @@ All notable changes to nagprom will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-14-08
+### Breaking Changes
+- **Folder Structure Reorganization** - Complete restructuring for better organization:
+  - `dashboards/` → `grafana-dashboards/` (Grafana-specific dashboards only)
+  - `web/` → `clients/nagios/` (PHP dashboards moved to dedicated client directory)
+  - `analytics/` directory added for ML and SRE components
+  - `docs/` directory restructured with subdirectories for different documentation types
+  - `api/` directory contains all API-related files and configuration
+  - `core/` directory for core NagProm functionality
+  - `assets/` directory for images and static resources
+
+- **API Endpoint Changes** - REST API endpoints have been standardized:
+  - All endpoints now use `/api/v1/` prefix
+  - Authentication now uses `X-API-Key` header instead of query parameter
+  - Response format standardized across all endpoints
+  - Rate limiting applied to all endpoints
+
+- **Configuration File Changes** - Configuration structure updated:
+  - Apache configuration moved to `api/apache-nagprom.conf`
+  - Installation scripts consolidated in `api/` directory
+  - Service files updated for new directory structure
+
+### Added
+- **🔍 Alert Correlation Engine** - Machine learning-powered alert correlation system:
+  - Multi-dimensional correlation (temporal, spatial, similarity, dependency-based)
+  - DBSCAN clustering and TF-IDF similarity analysis
+  - Pattern recognition and noise reduction
+  - Root cause analysis with automated suggestions
+  - Predictive alerting based on historical patterns
+  - Incident timeline reconstruction
+  - Alert fatigue reduction
+
+- **📊 SRE Analytics Engine** - Comprehensive Site Reliability Engineering features:
+  - Service Level Objectives (SLO) management and tracking
+  - Error budget monitoring with burn rate analysis
+  - Reliability metrics: MTTR, MTBF, availability percentages
+  - Capacity planning insights and trend analysis
+  - Anomaly detection using statistical analysis
+  - Business impact analysis with revenue impact calculations
+  - Service dependency mapping and analysis
+
+- **🌐 Complete REST API** - Full-featured REST API for Nagios monitoring data:
+  - Prometheus integration with query and query_range support
+  - Embedded SRE analytics within main API service
+  - Time-series data support for historical analysis
+  - Rate limiting and authentication
+  - Webhook support for alert integration
+
+- **📱 PHP Dashboard Suite** - Complete web interface including:
+  - Main dashboard hub (`index.php`)
+  - Performance metrics dashboard (`metrics.php`) with gauge displays
+  - Debug information dashboard (`debug.php`)
+  - Time-series graphing interface (`graph.php`) with threshold visualization
+  - SRE analytics dashboard (`sre_analytics.php`)
+
+- **🔒 Security & Performance**:
+  - API Key Authentication (optional)
+  - Rate limiting and pagination
+  - CORS configuration for web access
+  - Input validation and sanitization
+  - Error handling without information leakage
+
+- **📚 Comprehensive Documentation**:
+  - Technical API guides with OpenAPI/Swagger support
+  - SRE analytics user guides
+  - Production deployment documentation
+  - Integration examples and tutorials
+
+### Changed
+- **Improved Data Processing** - Better handling of Nagios performance data and thresholds
+- **Modern Web Interface** - Responsive PHP dashboards with Chart.js integration
+- **Production-Ready Installation** - Automated installers with systemd service integration
+- **Apache Integration** - Reverse proxy configuration for secure external access
+
+### Fixed
+- Performance data parsing and threshold extraction
+- Prometheus query compatibility and error handling
+
 ## [1.0.0] - 2024-03-08
 
 ### Breaking Changes
